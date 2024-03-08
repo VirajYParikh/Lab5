@@ -14,19 +14,23 @@ object XMLReader {
     val fileRdd = sc.wholeTextFiles("hdfs:///user/vp2359_nyu_edu/loudacre/activations/activations/*.xml")
 
     // Parse XML files and extract activation records
-    val seqRdd = fileRdd.flatMap { case (_, xmlString) =>
-      val xml = XML.loadString(xmlString)
-      (xml \ "activation").map { activation =>
-        ((activation \ "account-number").text + ":" + (activation \ "model").text)
-      }
-    }
+    // val seqRdd = fileRdd.flatMap { case (_, xmlString) =>
+    //   val xml = XML.loadString(xmlString)
+    //   (xml \ "activation").map { activation =>
+    //     ((activation \ "account-number").text + ":" + (activation \ "model").text)
+    //   }
+    // }
+
+    val seqRdd = fileRdd.map(x => XML.loadString(x._2) \ "activation")
+    val actRdd = seqRdd.flatMap(identity)
+    val tupleRdd = actRdd.map(x => ((x \ "model").text + ":" +  (x \ "account-number").text))
 
     val outputFilePath = "hdfs:///user/vp2359_nyu_edu/loudacre/accounts-models/"
     // Save to HDFS
-    seqRdd.saveAsTextFile(outputFilePath)
+    tupleRdd.saveAsTextFile(outputFilePath)
 
     // Print sample records
-    seqRdd.take(20).foreach(println)
+    tupleRdd.take(20).foreach(println)
 
     // Stop Spark context
     sc.stop()
