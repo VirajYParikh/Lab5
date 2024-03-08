@@ -21,6 +21,10 @@ object XMLReader {
       }
     }
 
+    val outputFilePath = "hdfs:///user/vp2359_nyu_edu/loudacre/accounts-models/"
+    // Save to HDFS
+    seqRdd.saveAsTextFile(outputFilePath)
+
     // Print sample records
     seqRdd.take(20).foreach(println)
 
